@@ -1,66 +1,91 @@
+#himanshu tomar
+#email id: ht272@njit.edu
+
 require 'sinatra/base'
 require 'sinatra/flash'
-require_relative './lib/wordguesser_game.rb'
+require './lib/wordguesser_game.rb'
 
 class WordGuesserApp < Sinatra::Base
-
   enable :sessions
   register Sinatra::Flash
-  
+
+  # Set up game before each request
   before do
     @game = session[:game] || WordGuesserGame.new('')
   end
-  
+
+  # Save game after each request
   after do
     session[:game] = @game
   end
-  
-  # These two routes are good examples of Sinatra syntax
-  # to help you with the rest of the assignment
+
+  # Home route redirects to new game
   get '/' do
     redirect '/new'
   end
-  
+
+  # New game route
   get '/new' do
     erb :new
   end
-  
-  post '/create' do
-    # NOTE: don't change next line - it's needed by autograder!
-    word = params[:word] || WordGuesserGame.get_random_word
-    # NOTE: don't change previous line - it's needed by autograder!
 
+  # Create a new game route
+  post '/create' do
+    word = params[:word] || WordGuesserGame.get_random_word
     @game = WordGuesserGame.new(word)
     redirect '/show'
   end
-  
-  # Use existing methods in WordGuesserGame to process a guess.
-  # If a guess is repeated, set flash[:message] to "You have already used that letter."
-  # If a guess is invalid, set flash[:message] to "Invalid guess."
+
+  # Process guess route
   post '/guess' do
-    letter = params[:guess].to_s[0]
-    ### YOUR CODE HERE ###
+    begin
+      letter = params[:guess].to_s[0]
+      process_guess(letter)
+    rescue ArgumentError
+      flash[:message] = "Invalid guess."
+    end
     redirect '/show'
   end
-  
-  # Everytime a guess is made, we should eventually end up at this route.
-  # Use existing methods in WordGuesserGame to check if player has
-  # won, lost, or neither, and take the appropriate action.
-  # Notice that the show.erb template expects to use the instance variables
-  # wrong_guesses and word_with_guesses from @game.
+
+  # Show game status route
   get '/show' do
-    ### YOUR CODE HERE ###
-    erb :show # You may change/remove this line
+    handle_game_status
   end
-  
+
+  # Win route
   get '/win' do
-    ### YOUR CODE HERE ###
-    erb :win # You may change/remove this line
+    redirect '/show' if @game.check_win_or_lose == :play
+    erb :win
   end
-  
+
+  # Lose route
   get '/lose' do
-    ### YOUR CODE HERE ###
-    erb :lose # You may change/remove this line
+    redirect '/show' if @game.check_win_or_lose == :play
+    erb :lose
   end
-  
+
+  private
+
+  # Process a guess
+  def process_guess(letter)
+    guesses_before_guess = @game.guesses
+    if !@game.guess(letter)
+      flash[:message] = "You have already used that letter."
+    elsif guesses_before_guess == @game.guesses
+      flash[:message] = "Invalid guess."
+    end
+  end
+
+  # Handle game status and redirection
+  def handle_game_status
+    case @game.check_win_or_lose
+    when :win
+      redirect '/win'
+    when :lose
+      redirect '/lose'
+    else
+      erb :show
+    end
+  end
 end
+
