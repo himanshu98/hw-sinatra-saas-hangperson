@@ -1,8 +1,16 @@
 source 'https://rubygems.org'
-ruby '2.6.6'
+ruby '3.2.2'
 
 gem 'sinatra', '>= 2.0.2'
 gem 'sinatra-flash', '0.3.0'
+
+gem 'thin'
+gem 'puma'
+gem 'http'
+gem 'webrick'
+gem 'falcon'
+gem 'reel'
+
 
 group :development, :test do
   gem 'cucumber', '2.0.0'
@@ -15,9 +23,10 @@ group :development, :test do
   gem 'rack-test', '0.6.3'
   gem 'rack_session_access', '0.1.1'
 
-  gem 'byebug', '5.0.0'
+  gem 'byebug', '9.1.0'
   gem 'launchy', '2.4.3'
-  gem 'rerun', '0.10.0'
+  gem 'rerun'
+  
 
   gem 'simplecov', '0.16.1'
   gem 'webmock', '3.3.0'
